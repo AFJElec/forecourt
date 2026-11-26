@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens — see docs/DESIGN-SYSTEM.md
+   Navy/charcoal chrome · white & cool-grey surfaces · electric blue accent
+   ------------------------------------------------------------------ */
+@theme {
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink-950: #070b14;
+  --color-ink-900: #0b1222;   /* navigation / footer */
+  --color-ink-800: #141d33;
+  --color-ink-700: #1f2a44;
+  --color-ink-600: #334061;
+
+  --color-surface: #ffffff;
+  --color-canvas: #f5f7fa;     /* page background */
+  --color-mist-100: #eef1f6;
+  --color-mist-200: #e2e7ef;
+  --color-mist-300: #cfd6e2;
+  --color-slate-ink: #3c4659;  /* body text */
+  --color-muted: #6a7487;
+
+  --color-electric-50: #eef4ff;
+  --color-electric-100: #dbe7ff;
+  --color-electric-200: #b9d0ff;
+  --color-electric-400: #5b93ff;
+  --color-electric-500: #2f74ff;  /* primary accent */
+  --color-electric-600: #1a5cf0;
+  --color-electric-700: #1449c4;
+
+  --color-success-50: #e9f8f0;
+  --color-success-600: #0f8a4f;
+  --color-good-600: #2b9a5c;
+  --color-warn-50: #fff6e5;
+  --color-warn-600: #b26b00;
+  --color-danger-50: #fdeced;
+  --color-danger-600: #c62832;
+
+  --radius-card: 1.125rem;
+  --radius-control: 0.75rem;
+
+  --shadow-card: 0 1px 2px rgb(11 18 34 / 0.04), 0 4px 16px rgb(11 18 34 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(11 18 34 / 0.06), 0 16px 40px rgb(11 18 34 / 0.12);
+  --shadow-float: 0 12px 48px rgb(7 11 20 / 0.22);
+
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply bg-canvas text-slate-ink antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3, h4 { @apply text-ink-900; font-family: var(--font-display); letter-spacing: -0.02em; }
+  :focus-visible { outline: 2px solid var(--color-electric-500); outline-offset: 2px; }
+  ::selection { background: var(--color-electric-100); }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-8; }
+  .section-title { @apply text-2xl font-bold tracking-tight text-ink-900 sm:text-[28px]; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.14em] text-electric-600; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

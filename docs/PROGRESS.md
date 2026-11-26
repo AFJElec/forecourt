@@ -1,19 +1,37 @@
 # Development progress
 
-_Last updated: 26 Nov 2026 · Current phase: **1 (complete, pending first `next build` on a machine with npm access)**_
+_Last updated: 26 Nov 2026 · Current phase: **2 built** — needs a Supabase project to switch on, and a first `next build` with npm access_
 
 ## Phase status
 
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Design system, homepage, navigation, search, listing pages | ✅ Built |
-| 2 | Database, auth, buyer accounts, saved vehicles | 🟡 Schema + RLS + seed done and tested; auth UI/wiring not started |
+| 2 | Database, auth, buyer accounts, saved vehicles | ✅ Built — SQL tested locally; app code awaits a live Supabase project |
 | 3 | Private seller advertising + dashboard | ⬜ Schema ready (packages, status workflow, media) |
 | 4 | Dealer portal + stock management | ⬜ Schema ready (locations, staff roles, subscriptions) |
 | 5 | Messaging, enquiries, notifications | 🟡 Enquiry form + validation done (demo: not delivered); schema ready |
 | 6 | Payments, subscriptions, admin | ⬜ Schema ready (Stripe tables, audit log, RBAC permissions) |
 | 7 | External data, valuations, advanced | ⬜ |
 | 8 | Security testing, performance, deployment | ⬜ |
+
+## Completed — Phase 2
+
+- **Supabase data layer**: full `DATA_SOURCE=supabase` implementations for listings (search, count, facets, detail, summaries, compare, similar, featured, recent, price assessment, stats), taxonomy and dealers. Public reads use a cookie-less anon client (RLS limits it to active adverts) so pages stay cacheable.
+- **Migration 0009**: profile guard (users can't unsuspend themselves), price-drop notifications (trigger on price history → users who saved the advert), saved-search alerts (`process_saved_search_alerts`, scheduled with pg_cron when available), disjunctive `listing_facets` RPC, `merge_device_lists` for sign-in, `export_my_data` for GDPR, marketing consent captured at sign-up.
+- **Auth**: sign up (name, email, password ≥10 with letter+number, terms, optional marketing), sign in with password or email link, forgot/reset password, email-confirmation callback (PKCE), sign out, session-refresh middleware, `/account` protection, open-redirect-safe `?next=`. Error messages never reveal whether an email is registered.
+- **Buyer accounts**: overview, settings (personal details, notification preferences, marketing consent, change password), notifications inbox with mark-all-read, data download (JSON), account deletion (type DELETE; removes private adverts, cascades personal data).
+- **Saved vehicles, recently viewed and saved searches** sync to the account: device lists merge on sign-in, then every change is mirrored. Per-search alert frequency (instant / daily / weekly / off).
+- **Compare** up to 4 vehicles side by side with best-in-row highlighting; floating compare tray.
+- **Tests**: `scripts/test-db.sh` now also runs `supabase/tests/phase2_smoke.sql` (merge, guard, export, price-drop + saved-search notifications, permission on alert job) and facet parity (SQL vs engine, 5 cases). 20 unit tests.
+
+## Phase 2 — to switch on
+
+1. Create a Supabase project (London region `eu-west-2` for UK data residency).
+2. `supabase link` → `supabase db push` (applies migrations), then `supabase db seed` if you want the demo listings.
+3. Auth settings: Site URL = your domain; add `https://<domain>/auth/callback` to redirect URLs; enable email confirmations; set a custom SMTP (Resend) before launch — Supabase's built-in email is rate-limited.
+4. Enable the `pg_cron` extension, then re-run migration 0009's cron block (or `select cron.schedule(...)` from it) for saved-search alerts.
+5. Vercel env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATA_SOURCE=supabase`.
 
 ## Completed (Phase 1 + groundwork)
 
@@ -34,7 +52,7 @@ _Last updated: 26 Nov 2026 · Current phase: **1 (complete, pending first `next 
 ## Outstanding (next up)
 
 1. `npm install && npm run build` — the build environment used so far had no npm registry access, so the Next.js build has not been run yet. Type-checked with stubs; expect only minor fixes.
-2. Phase 2: Supabase project, auth pages (sign up/in, magic link, reset), middleware session refresh, move saved/recent/searches from localStorage to tables (merge on sign-in), compare up to 4 vehicles, facet RPC for Supabase search, taxonomy/dealer repositories on Supabase.
+2. Phase 3: private seller advert builder (10 steps), media upload, AI-assisted descriptions, seller dashboard.
 3. Location landing pages (`/used-cars/in/[town]`) — listed in spec, not yet built.
 4. Video playback on vehicle pages (schema supports `video_url`; UI shows placeholder).
 5. Dealer reviews list UI (data model done).
@@ -58,6 +76,8 @@ _Last updated: 26 Nov 2026 · Current phase: **1 (complete, pending first `next 
 
 - **Brand name** is a placeholder ("Forecourt"). Check trademark availability before committing.
 - **FCA**: decide between own credit-broking permission vs appointed-representative/introducer route before any finance quotes or "apply" buttons.
+- Notifications are in-app only until Phase 5 adds email (Resend) and web push; the email preference is stored now.
+- Social sign-in (Google/Apple) not added — straightforward via Supabase providers if wanted.
 - Rate limiter is in-memory → not effective across Vercel instances until Redis is added.
 - Postcode radius uses postcode-**area** centroids offline (±10–20 miles); production should load ONS district centroids or call postcodes.io (already wired in `geocodePostcode`).
 - Price assessment model is deliberately simple (median of age/mileage-normalised comparables). Revisit with real market data volumes.

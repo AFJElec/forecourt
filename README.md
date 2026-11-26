@@ -22,7 +22,7 @@ supabase db reset                    # applies supabase/migrations + supabase/se
 ### Regenerate demo data / renders
 
 ```bash
-npm run db:seed:generate             # → supabase/seed.sql + public/demo-vehicles/*.svg
+npm run db:seed:generate             # → supabase/seed.sql + public/demo-vehicles/*.svg (also runs automatically before dev/build)
 scripts/test-db.sh                   # migrations + seed + SQL/engine parity + RLS smoke test
 ```
 

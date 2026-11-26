@@ -14,3 +14,6 @@ PSQL="psql $PG -d forecourt_test" npx tsx scripts/check-sql-parity.ts
 SELLER=$($DB -At -c "select seller_user_id from advertisements where seller_type='private' order by slug limit 1")
 AD=$($DB -At -c "select id from advertisements where seller_user_id='$SELLER'")
 psql $PG -d forecourt_test -At -v seller="$SELLER" -v ad="$AD" -f supabase/tests/rls_smoke.sql
+BUYER=$($DB -At -c "insert into auth.users (email) values ('buyer@example.com') returning id" | head -1)
+TRADE_AD=$($DB -At -c "select id from advertisements where seller_type='trade' and status='active' order by slug limit 1")
+psql $PG -d forecourt_test -At -v buyer="$BUYER" -v ad="$TRADE_AD" -f supabase/tests/phase2_smoke.sql

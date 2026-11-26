@@ -2,7 +2,7 @@
   "name": "forecourt-marketplace",
   "version": "0.1.0",
   "private": true,
-  "description": "UK automotive marketplace — Phase 1 (temporary brand: Forecourt)",
+  "description": "UK automotive marketplace \u2014 Phase 1 (temporary brand: Forecourt)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,7 +12,9 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "db:seed:generate": "tsx scripts/generate-seed.ts",
     "db:reset": "supabase db reset",
-    "preview:build": "tsx preview/build.ts"
+    "preview:build": "tsx preview/build.ts",
+    "prebuild": "tsx scripts/generate-seed.ts",
+    "predev": "tsx scripts/generate-seed.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

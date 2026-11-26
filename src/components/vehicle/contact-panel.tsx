@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { postJson } from "@/lib/search/client";
 import { cn } from "@/lib/utils";
+import { CompareButton } from "./compare-button";
 import { SaveButton } from "./save-button";
 
 type Kind = "contact" | "viewing" | "part_exchange";
@@ -123,6 +124,7 @@ export function ShareReport({ advertId, title }: { advertId: string; title: stri
   };
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
+      <CompareButton id={advertId} />
       <Button variant="ghost" size="sm" onClick={share}><Share2 /> Share</Button>
       <Button variant="ghost" size="sm" onClick={() => setReporting((x) => !x)} aria-expanded={reporting}><Flag /> Report advert</Button>
       {msg && <span className="text-success-600" role="status">{msg}</span>}

@@ -9,7 +9,7 @@
 | Web app | Next.js 15 (App Router) + React 19 + TypeScript (strict) | Server Components for data pages; client components only where interactive |
 | Styling | Tailwind CSS v4 + shadcn/ui conventions (`components.json`) | Tokens in `src/styles/globals.css` (`@theme`) |
 | Database | PostgreSQL via Supabase | Migrations in `supabase/migrations`, RLS on every table |
-| Auth | Supabase Auth (Phase 2) | `profiles` row + `buyer` role created by trigger on sign-up |
+| Auth | Supabase Auth via `@supabase/ssr` | cookie sessions refreshed in `middleware.ts`; `profiles` row + `buyer` role created by trigger on sign-up |
 | Storage | Supabase Storage (`listing-media`, `dealer-branding`) | Upload path must start with the uploader's user id |
 | Search | PostgreSQL FTS + filter RPC (`search_listings`, `count_listings`) | Contract designed to be replaced by Typesense/Meilisearch/OpenSearch |
 | Payments | Stripe (Phase 6) | `stripe_events` table gives idempotent webhook processing |
@@ -60,8 +60,12 @@ docs/                   ARCHITECTURE, DESIGN-SYSTEM, PROGRESS
 | `/used-cars/[make]`, `/used-cars/[make]/[model]` | live | SEO landing pages (404 for unknown make/model) |
 | `/vehicle/[slug]` | live | advert page, JSON-LD `Car`+`Offer` |
 | `/dealers`, `/dealers/[slug]` | live | directory + public dealer profile |
-| `/saved` | live (device-local) | saved vehicles + saved searches (syncs to account in Phase 2) |
-| `/sell`, `/valuation`, `/account`, `/messages`, `/new-cars`, `/vans`, `/motorcycles`, `/advertise` | planned | clearly labelled "Not yet live · Build phase N" |
+| `/saved` | live | saved vehicles + saved searches; device-local, synced to the account when signed in |
+| `/compare` | live | up to 4 vehicles side by side |
+| `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/auth/callback`, `/auth/sign-out` | live (needs Supabase) | password + email-link auth |
+| `/account`, `/account/settings`, `/account/notifications` | live (needs Supabase) | protected by middleware |
+| `/api/me`, `/api/me/{sync,saved,recent,searches,notifications,export,delete}` | live (needs Supabase) | RLS-scoped per user |
+| `/sell`, `/valuation`, `/messages`, `/new-cars`, `/vans`, `/motorcycles`, `/advertise` | planned | clearly labelled "Not yet live · Build phase N" |
 | `/api/search`, `/api/search/count`, `/api/vehicles` | live | rate-limited, cache headers |
 | `/api/enquiries`, `/api/reports` | validated | demo: validated, not delivered; live delivery = Phase 5/6 (returns 501 `unfinished`) |
 | `sitemap.xml`, `robots.txt`, `manifest.webmanifest` | live | demo/staging is `noindex` unless `NEXT_PUBLIC_ALLOW_INDEXING=true` |
@@ -88,6 +92,13 @@ notifications, push_subscriptions, valuations, audit_logs (append-only), platfor
 * **Search**: `listing_search` view (security_invoker, so RLS applies) + `listing_matches(row, jsonb)` predicate shared by `search_listings` and `count_listings`. Partial indexes on active ads; bounding-box prefilter for radius.
 * **RLS**: deny-by-default on every table; tested by `supabase/tests/rls_smoke.sql`.
 * **Configurable commerce**: package prices, durations, photo limits and dealer plan limits live in `ad_packages` / `subscription_plans`; app settings in `platform_settings`.
+
+## Accounts & sync (Phase 2)
+
+* Session is read client-side (`AuthProvider` → `/api/me`) so public pages stay statically cacheable; account pages are `force-dynamic`.
+* Saved vehicles, recently viewed and saved searches live in localStorage for everyone. When a user signs in, `AuthProvider` posts the device lists to `/api/me/sync` (→ `merge_device_lists`), replaces the local lists with the account's, then mirrors each local change to the API. Components only ever use `useLocalList()`.
+* Saved searches store the canonical query string (for links) **and** a resolved jsonb filter (postcode → lat/lng) so `listing_matches()` can evaluate alerts in SQL.
+* Notifications: price drops via trigger on `price_history`; saved-search matches via `process_saved_search_alerts(freq)` on pg_cron. Email/push delivery is Phase 5.
 
 ## UK-specific rules baked in
 

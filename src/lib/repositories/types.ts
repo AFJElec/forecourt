@@ -14,6 +14,8 @@ export interface ListingRepository {
   search(filters: SearchFilters): Promise<SearchResult>;
   count(filters: SearchFilters): Promise<number>;
   getBySlug(slug: string): Promise<Vehicle | null>;
+  /** Full details for several adverts (compare page). Unknown ids are skipped; order follows `ids`. */
+  getByIds(ids: string[]): Promise<Vehicle[]>;
   getSummaries(ids: string[]): Promise<VehicleSummary[]>;
   getSimilar(vehicle: Vehicle, limit?: number): Promise<VehicleSummary[]>;
   getFeatured(limit?: number): Promise<VehicleSummary[]>;

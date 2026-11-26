@@ -63,6 +63,7 @@ for (const v of demoVehicles) {
   v.images.forEach((img, i) => sql.push(`insert into public.vehicle_media (advertisement_id, kind, storage_path, width, height, alt, position, is_primary) values (${aid}, 'photo', ${q(`demo:${img.src}`)}, ${img.width}, ${img.height}, ${q(img.alt)}, ${i}, ${i === 0});`));
 }
 sql.push("commit;", `-- reference date ${DEMO_REFERENCE_DATE.toISOString()} · ${demoVehicles.length} demo listings`);
+mkdirSync(join(root, "supabase"), { recursive: true });
 writeFileSync(join(root, "supabase/seed.sql"), sql.join("\n") + "\n");
 
 // Illustrative renders

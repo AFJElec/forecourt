@@ -5,7 +5,8 @@
  */
 import { execFileSync } from "node:child_process";
 import { demoVehicles } from "../src/data/demo/vehicles";
-import { effectivePriceMax, matches } from "../src/lib/search/engine";
+import { dealerships } from "../src/data/demo/catalogue";
+import { effectivePriceMax, matches, searchVehicles } from "../src/lib/search/engine";
 import type { SearchFilters } from "../src/lib/search/schema";
 
 const psql = (process.env.PSQL ?? "psql -h /tmp -p 54329 -U postgres -d fc").split(" ");
@@ -28,6 +29,15 @@ for (const c of cases) {
   const ok = got === expected;
   if (!ok) failures++;
   console.log(`${ok ? "PASS" : "FAIL"}  ${JSON.stringify(c).padEnd(80)} engine=${expected} sql=${got}`);
+}
+// Facet counts (disjunctive) must also agree.
+for (const f of [{}, { make: "ford" }, { fuel: ["electric"] }, { body: ["suv"], seller: "trade" }, { priceMax: 15000, transmission: "manual" }] as SearchFilters[]) {
+  const engine = searchVehicles(demoVehicles, dealerships, f, null).facets;
+  const sql = JSON.parse(execFileSync(psql[0]!, [...psql.slice(1), "-At", "-c", `select listing_facets('${JSON.stringify(f)}'::jsonb)`]).toString().trim());
+  const norm = (o: Record<string, Record<string, number>>) => JSON.stringify(Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Object.fromEntries(Object.entries(v).sort())]).sort()));
+  const ok = norm(engine as unknown as Record<string, Record<string, number>>) === norm(sql);
+  if (!ok) failures++;
+  console.log(`${ok ? "PASS" : "FAIL"}  facets ${JSON.stringify(f)}`);
 }
 console.log(failures ? `${failures} mismatches` : "SQL and in-memory search agree on all cases");
 process.exit(failures ? 1 : 0);

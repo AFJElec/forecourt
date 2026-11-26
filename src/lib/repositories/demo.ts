@@ -16,6 +16,7 @@ export const demoListings: ListingRepository = {
   async count(filters) { return countVehicles(all, filters); },
   async getBySlug(slug) { return all.find((v) => v.slug === slug) ?? null; },
   async getSummaries(ids) { return sum(ids); },
+  async getByIds(ids) { return ids.map((id) => all.find((v) => v.id === id)).filter((v): v is (typeof all)[number] => !!v); },
   async getSimilar(vehicle, limit = 8) {
     const scored = all
       .filter((v) => v.id !== vehicle.id)

@@ -23,6 +23,11 @@ export async function handleSummaries(params: URLSearchParams): Promise<ApiResul
   return { status: 200, body: { items: await listings().getSummaries(ids) } };
 }
 
+export async function handleCompare(params: URLSearchParams): Promise<ApiResult> {
+  const ids = (params.get("ids") ?? "").split(",").map((s) => s.trim()).filter((s) => /^[\w-]{1,64}$/.test(s)).slice(0, 4);
+  return { status: 200, body: { items: await listings().getByIds(ids) } };
+}
+
 export async function handleEnquiry(body: unknown): Promise<ApiResult> {
   const parsed = enquirySchema.safeParse(body);
   if (!parsed.success) return { status: 422, body: { error: "Please check the highlighted fields.", fieldErrors: fieldErrors(parsed.error) } };

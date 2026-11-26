@@ -6,7 +6,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { PlannedFeature } from "@/components/common/planned-feature";
+import { AccountUnavailable } from "@/components/account/account-unavailable";
+import { ForgotPasswordForm, ResetPasswordForm, SignInForm, SignUpForm } from "@/components/auth/auth-forms";
+import { AuthProvider } from "@/components/auth/auth-provider";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { CookieConsent } from "@/components/layout/cookie-consent";
+import { CompareTray } from "@/components/vehicle/compare-tray";
+import { CompareView } from "@/views/compare-view";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -28,6 +34,7 @@ import { useRoute } from "next/navigation";
 (globalThis as Record<string, unknown>).__fcLocalApi = {
   count: (qs: string) => listings().count(parseSearchParams(new URLSearchParams(qs))),
   summaries: (ids: string[]) => listings().getSummaries(ids),
+  vehicles: (ids: string[]) => listings().getByIds(ids),
   post: async (path: string, body: unknown) => {
     const r = path.includes("enquir") ? await handleEnquiry(body) : await handleReport(body);
     return { ok: r.status < 400, data: r.body };
@@ -59,6 +66,12 @@ async function resolve(route: string): Promise<{ node: ReactNode; title: string 
     return d ? { node: <DealerProfileView {...d} />, title: d.dealer.name } : { node: <NotFound />, title: "Not found" };
   }
   if (seg[0] === "saved") return { node: <SavedView />, title: "Saved" };
+  if (seg[0] === "compare") return { node: <CompareView />, title: "Compare" };
+  if (seg[0] === "account") return { node: <AccountUnavailable />, title: "My account" };
+  if (seg[0] === "sign-in") return { node: <AuthShell title="Sign in" subtitle="Welcome back." configured={false}><SignInForm next="/account" /></AuthShell>, title: "Sign in" };
+  if (seg[0] === "sign-up") return { node: <AuthShell title="Create your account" subtitle="Free for buyers. Takes under a minute." configured={false}><SignUpForm /></AuthShell>, title: "Create account" };
+  if (seg[0] === "forgot-password") return { node: <AuthShell title="Reset your password" configured={false}><ForgotPasswordForm /></AuthShell>, title: "Reset password" };
+  if (seg[0] === "reset-password") return { node: <AuthShell title="Choose a new password" configured={false}><ResetPasswordForm /></AuthShell>, title: "New password" };
   const key = seg.join("/");
   if (key in planned) { const p = planned[key as keyof typeof planned]; return { node: <PlannedFeature {...p} />, title: p.title }; }
   if (contentPages[key]) return { node: <ContentPage page={contentPages[key]!} />, title: contentPages[key]!.title };
@@ -96,13 +109,14 @@ function App() {
   }, []);
 
   return (
-    <>
+    <AuthProvider>
       <SiteHeader />
       <main id="main" className="min-h-[60vh]">{page?.node ?? <div className="container-page py-24 text-center text-muted">Loading…</div>}</main>
       <SiteFooter />
       <MobileTabBar />
+      <CompareTray />
       <CookieConsent />
-    </>
+    </AuthProvider>
   );
 }
 

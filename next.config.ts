@@ -10,6 +10,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  eslint: { ignoreDuringBuilds: true }, // lint runs separately (npm run lint); don't block deploys
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

@@ -8,7 +8,15 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 export type ListKey = "saved" | "recent" | "searches" | "compare";
-export interface SavedSearch { id: string; name: string; query: string; createdAt: string }
+export interface SavedSearch {
+  id: string;
+  name: string;
+  query: string;
+  createdAt: string;
+  /** Set once synced to the account (saved_searches.id). */
+  serverId?: string;
+  alertFrequency?: "off" | "instant" | "daily" | "weekly";
+}
 
 const LIMITS: Record<ListKey, number> = { saved: 200, recent: 20, searches: 50, compare: 4 };
 const storageKey = (k: ListKey) => `fc:${k}`;
@@ -40,6 +48,11 @@ function subscribe(cb: () => void) {
 }
 
 const EMPTY: never[] = [];
+
+/** Non-hook access used by the account sync layer. */
+export function readList<T>(k: ListKey): T[] { return read<T>(k); }
+export function replaceList<T>(k: ListKey, list: T[]) { write(k, list); }
+export function onListsChange(cb: () => void): () => void { return subscribe(cb); }
 
 export function useLocalList<T = string>(k: ListKey) {
   const list = useSyncExternalStore(subscribe, () => read<T>(k), () => EMPTY as T[]);

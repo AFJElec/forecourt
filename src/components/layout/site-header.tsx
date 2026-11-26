@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { accountNav, mainNav } from "@/config/site";
+import { useAuth } from "@/components/auth/auth-provider";
 import { useLocalList } from "@/lib/storage/local-lists";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
@@ -16,6 +17,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { list: saved } = useLocalList<string>("saved");
+  const { user } = useAuth();
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -56,9 +58,16 @@ export function SiteHeader() {
               <span className="absolute right-0.5 top-0.5 flex min-w-4.5 items-center justify-center rounded-full bg-electric-500 px-1 text-[10px] font-bold xl:static">{saved.length}</span>
             )}
           </Link>
-          <Link href="/account" className="hidden h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-semibold hover:bg-white/10 sm:flex">
-            <User className="size-4" /> Sign in
-          </Link>
+          {user ? (
+            <Link href="/account" className="hidden h-10 items-center gap-2 rounded-full border border-white/20 pl-1.5 pr-4 text-sm font-semibold hover:bg-white/10 sm:flex" aria-label="My account">
+              <span className="flex size-7 items-center justify-center rounded-full bg-electric-500 text-xs font-bold uppercase">{user.displayName.slice(0, 1)}</span>
+              My account
+            </Link>
+          ) : (
+            <Link href="/sign-in" className="hidden h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-semibold hover:bg-white/10 sm:flex">
+              <User className="size-4" /> Sign in
+            </Link>
+          )}
           <button className="flex size-10 items-center justify-center rounded-full hover:bg-white/10 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}>
             <Menu className="size-5" />
           </button>
@@ -75,7 +84,7 @@ export function SiteHeader() {
             <button onClick={() => setOpen(false)} className="flex size-10 items-center justify-center rounded-full hover:bg-white/10" aria-label="Close menu"><X className="size-5" /></button>
           </div>
           <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Mobile">
-            {[...mainNav, ...accountNav].map((item) => (
+            {[...mainNav, ...accountNav, ...(user ? [] : [{ label: "Sign in / Create account", href: "/sign-in", status: "live" as const }])].map((item) => (
               <Link key={item.href} href={item.href} className="flex items-center justify-between rounded-xl px-3 py-3.5 text-[16px] font-medium text-white/90 hover:bg-white/5">
                 {item.label}
                 {item.status === "planned" && <SoonPill />}

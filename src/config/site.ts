@@ -23,7 +23,8 @@ export const mainNav: NavItem[] = [
 
 export const accountNav: NavItem[] = [
   { label: "Saved Vehicles", href: "/saved", status: "live" },
-  { label: "My Account", href: "/account", status: "planned", phase: 2 },
+  { label: "My Account", href: "/account", status: "live" },
+  { label: "Compare", href: "/compare", status: "live" },
 ];
 
 export const pagination = { pageSize: 24, maxPageSize: 60 } as const;

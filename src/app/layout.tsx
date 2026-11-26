@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { AuthProvider } from "@/components/auth/auth-provider";
+import { CompareTray } from "@/components/vehicle/compare-tray";
 import { CookieConsent } from "@/components/layout/cookie-consent";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -37,11 +39,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-GB" className={`${inter.variable} ${display.variable}`}>
       <body className="min-h-dvh">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
-        <MobileTabBar />
-        <CookieConsent />
+        <AuthProvider>
+          <SiteHeader />
+          <main id="main">{children}</main>
+          <SiteFooter />
+          <MobileTabBar />
+          <CompareTray />
+          <CookieConsent />
+        </AuthProvider>
         <ServiceWorkerRegister />
       </body>
     </html>
